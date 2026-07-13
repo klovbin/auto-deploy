@@ -7,4 +7,6 @@
 !/main.go
 !/go.mod
 !/go.sum
+!/install.sh
+!/README.md
 !/internal/
