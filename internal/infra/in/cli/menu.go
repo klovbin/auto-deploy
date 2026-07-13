@@ -1,13 +1,30 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
+	"github.com/chzyer/readline"
 	"github.com/manifoldco/promptui"
 	"github.com/trust/deploy/internal/domain/config"
 )
+
+func IsExit(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, io.EOF) || errors.Is(err, readline.ErrInterrupt) {
+		return true
+	}
+	switch err.Error() {
+	case "^D", "^C":
+		return true
+	}
+	return false
+}
 
 func ClearScreen() {
 	fmt.Print("\033[H\033[2J")

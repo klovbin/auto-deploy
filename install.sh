@@ -67,4 +67,7 @@ cd "$INSTALL_DIR"
 go build -o deploy .
 
 echo "Запуск..."
+if [ -r /dev/tty ]; then
+	exec ./deploy </dev/tty
+fi
 exec ./deploy

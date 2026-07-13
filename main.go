@@ -34,6 +34,9 @@ func main() {
 			"5. Сгенерировать ключ для CI/CD",
 		})
 		if err != nil {
+			if cli.IsExit(err) {
+				return
+			}
 			fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
 			os.Exit(1)
 		}
@@ -42,6 +45,9 @@ func main() {
 		case 0:
 			url, err := cli.PromptRepositoryURL()
 			if err != nil {
+				if cli.IsExit(err) {
+					continue
+				}
 				fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
 				os.Exit(1)
 			}
