@@ -43,16 +43,18 @@ func PrintHeader(cfg config.Config) {
 	fmt.Println()
 }
 
-func Select(items []string) (int, error) {
+func Select(items []Item) (int, error) {
+	labels := itemLabels(items)
+
 	tty, err := openTTY()
 	if err != nil {
-		return selectSimple(items, os.Stdin)
+		return selectSimple(labels, os.Stdin)
 	}
 	defer tty.Close()
 
 	prompt := promptui.Select{
 		Label: "Выберите пункт",
-		Items: items,
+		Items: labels,
 		Stdin: tty,
 	}
 
@@ -61,7 +63,7 @@ func Select(items []string) (int, error) {
 		return index, nil
 	}
 
-	if index, simpleErr := selectSimple(items, tty); simpleErr == nil {
+	if index, simpleErr := selectSimple(labels, tty); simpleErr == nil {
 		return index, nil
 	}
 	if IsExit(err) {

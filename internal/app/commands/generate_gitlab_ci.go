@@ -11,6 +11,16 @@ import (
 
 const gitlabCIFileName = ".gitlab-ci.yml"
 
+func GitLabCIExists(cfg config.Config) bool {
+	repoPath, err := paths.RepoDirectory(cfg)
+	if err != nil {
+		return false
+	}
+
+	_, err = os.Stat(filepath.Join(repoPath, gitlabCIFileName))
+	return err == nil
+}
+
 func gitlabCITemplate(repoName string) string {
 	return fmt.Sprintf(`stages:
   - deploy

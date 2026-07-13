@@ -23,18 +23,20 @@ func main() {
 	generateCICDKey := commands.GenerateCICDKeyHandler{}
 	installDocker := commands.InstallDockerHandler{}
 
+	menuItems := []cli.Item{
+		{Label: "1. Добавить репозиторий"},
+		{Label: "2. Сгенерировать деплой ключи"},
+		{Label: "3. Склонировать репозиторий"},
+		{Label: "4. Сгенерировать CI/CD", Disabled: commands.GitLabCIExists(cfg)},
+		{Label: "5. Сгенерировать ключ для CI/CD"},
+		{Label: "6. Установить Docker"},
+	}
+
 	for {
 		cli.ClearScreen()
 		cli.PrintHeader(cfg)
 
-		index, err := cli.Select([]string{
-			"1. Добавить репозиторий",
-			"2. Сгенерировать деплой ключи",
-			"3. Склонировать репозиторий",
-			"4. Сгенерировать CI/CD",
-			"5. Сгенерировать ключ для CI/CD",
-			"6. Установить Docker",
-		})
+		index, err := cli.Select(menuItems)
 		if err != nil {
 			if cli.IsExit(err) {
 				fmt.Fprintln(os.Stderr, "выход")
@@ -42,6 +44,12 @@ func main() {
 			}
 			fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
 			os.Exit(1)
+		}
+
+		if menuItems[index].Disabled {
+			fmt.Println("Пункт недоступен")
+			cli.WaitForEnter()
+			continue
 		}
 
 		switch index {
