@@ -11,11 +11,7 @@ import (
 const fileName = ".trust-deploy.json"
 
 func path() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(cwd, fileName), nil
+	return filepath.Join(config.DefaultWorkDir, fileName), nil
 }
 
 func Load() (config.Config, error) {
@@ -24,11 +20,38 @@ func Load() (config.Config, error) {
 		return config.Config{}, err
 	}
 
-	data, err := os.ReadFile(configPath)
+	cfg, err := readConfig(configPath)
+	if err == nil {
+		return cfg, nil
+	}
+	if !os.IsNotExist(err) {
+		return config.Config{}, err
+	}
+
+	cwd, err := os.Getwd()
 	if err != nil {
-		if os.IsNotExist(err) {
+		return config.Config{}, nil
+	}
+
+	legacyPath := filepath.Join(cwd, fileName)
+	cfg, legacyErr := readConfig(legacyPath)
+	if legacyErr != nil {
+		if os.IsNotExist(legacyErr) {
 			return config.Config{}, nil
 		}
+		return config.Config{}, legacyErr
+	}
+
+	if saveErr := Save(cfg); saveErr == nil {
+		_ = os.Remove(legacyPath)
+	}
+
+	return cfg, nil
+}
+
+func readConfig(configPath string) (config.Config, error) {
+	data, err := os.ReadFile(configPath)
+	if err != nil {
 		return config.Config{}, err
 	}
 
@@ -43,6 +66,10 @@ func Load() (config.Config, error) {
 func Save(cfg config.Config) error {
 	configPath, err := path()
 	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		return err
 	}
 

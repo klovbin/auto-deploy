@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/klovbin/auto-deploy.git"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/auto-deploy}"
+WORK_DIR="${WORK_DIR:-/var/www}"
 
 install_go() {
 	if command -v go >/dev/null 2>&1; then
@@ -65,6 +66,8 @@ fi
 
 cd "$INSTALL_DIR"
 go build -o deploy .
+
+mkdir -p "$WORK_DIR"
 
 echo "Запуск..."
 if [ -r /dev/tty ]; then

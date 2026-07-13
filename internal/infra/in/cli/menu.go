@@ -34,6 +34,7 @@ func ClearScreen() {
 func PrintHeader(cfg config.Config) {
 	fmt.Println("Trust Deploy")
 	fmt.Println()
+	fmt.Printf("Рабочая папка: %s\n", cfg.WorkDirectory())
 	if cfg.Repository != "" {
 		fmt.Printf("Текущий репозиторий: %s\n", cfg.Repository)
 	} else {

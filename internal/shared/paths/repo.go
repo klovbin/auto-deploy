@@ -19,12 +19,15 @@ func RepoDirectory(cfg config.Config) (string, error) {
 		return "", err
 	}
 
-	cwd, err := os.Getwd()
+	return filepath.Join(cfg.WorkDirectory(), repoName), nil
+}
+
+func DeployDirectory(cfg config.Config) (string, error) {
+	repoPath, err := RepoDirectory(cfg)
 	if err != nil {
 		return "", err
 	}
-
-	return filepath.Join(cwd, repoName), nil
+	return filepath.Join(repoPath, ".deploy"), nil
 }
 
 func RequireClonedRepo(cfg config.Config) (repoPath string, repoName string, err error) {
