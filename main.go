@@ -21,6 +21,7 @@ func main() {
 	cloneRepo := commands.CloneRepositoryHandler{}
 	generateGitLabCI := commands.GenerateGitLabCIHandler{}
 	generateCICDKey := commands.GenerateCICDKeyHandler{}
+	installDocker := commands.InstallDockerHandler{}
 
 	for {
 		cli.ClearScreen()
@@ -32,6 +33,7 @@ func main() {
 			"3. Склонировать репозиторий",
 			"4. Сгенерировать CI/CD",
 			"5. Сгенерировать ключ для CI/CD",
+			"6. Установить Docker",
 		})
 		if err != nil {
 			if cli.IsExit(err) {
@@ -76,6 +78,12 @@ func main() {
 			cli.WaitForEnter()
 		case 4:
 			if err := generateCICDKey.Handle(cfg); err != nil {
+				fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
+				os.Exit(1)
+			}
+			cli.WaitForEnter()
+		case 5:
+			if err := installDocker.Handle(); err != nil {
 				fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
 				os.Exit(1)
 			}

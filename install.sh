@@ -53,18 +53,8 @@ install_git() {
 	fi
 }
 
-install_docker() {
-	if command -v docker >/dev/null 2>&1; then
-		return 0
-	fi
-
-	echo "Docker не найден, устанавливаю..."
-	curl -fsSL https://get.docker.com | sh
-}
-
 install_git
 install_go
-install_docker
 
 if [ -d "$INSTALL_DIR/.git" ]; then
 	echo "Обновляю $INSTALL_DIR..."
