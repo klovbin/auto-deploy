@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -42,21 +43,45 @@ func PrintHeader(cfg config.Config) {
 }
 
 func Select(items []string) (int, error) {
+	tty, err := openTTY()
+	if err != nil {
+		return selectSimple(items, os.Stdin)
+	}
+	defer tty.Close()
+
 	prompt := promptui.Select{
 		Label: "Выберите пункт",
 		Items: items,
+		Stdin: tty,
 	}
 
 	index, _, err := prompt.Run()
-	return index, err
+	if err == nil {
+		return index, nil
+	}
+
+	if index, simpleErr := selectSimple(items, tty); simpleErr == nil {
+		return index, nil
+	}
+	if IsExit(err) {
+		return 0, err
+	}
+
+	return 0, err
 }
 
 func PromptRepositoryURL() (string, error) {
+	tty, err := openTTY()
+	if err != nil {
+		return promptSimple("Ссылка на репозиторий", os.Stdin)
+	}
+	defer tty.Close()
+
 	prompt := promptui.Prompt{
 		Label: "Ссылка на репозиторий",
+		Stdin: tty,
 		Validate: func(input string) error {
-			input = strings.TrimSpace(input)
-			if input == "" {
+			if strings.TrimSpace(input) == "" {
 				return fmt.Errorf("ссылка не может быть пустой")
 			}
 			return nil
@@ -64,17 +89,27 @@ func PromptRepositoryURL() (string, error) {
 	}
 
 	url, err := prompt.Run()
-	if err != nil {
+	if err == nil {
+		return strings.TrimSpace(url), nil
+	}
+	if IsExit(err) {
 		return "", err
 	}
 
-	return strings.TrimSpace(url), nil
+	return promptSimple("Ссылка на репозиторий", tty)
 }
 
 func WaitForEnter() {
 	fmt.Println()
 	fmt.Print("Нажмите Enter для возврата в меню...")
-	if _, err := fmt.Scanln(); err != nil {
-		os.Exit(0)
+
+	tty, err := openTTY()
+	if err != nil {
+		_, _ = fmt.Scanln()
+		return
 	}
+	defer tty.Close()
+
+	scanner := bufio.NewScanner(tty)
+	scanner.Scan()
 }

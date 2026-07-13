@@ -35,6 +35,7 @@ func main() {
 		})
 		if err != nil {
 			if cli.IsExit(err) {
+				fmt.Fprintln(os.Stderr, "выход")
 				return
 			}
 			fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
