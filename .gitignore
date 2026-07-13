@@ -1,3 +1,10 @@
 .trust-deploy.json
 **/.deploy/
-*/
+
+# cloned repositories at repo root
+/*
+!/.gitignore
+!/main.go
+!/go.mod
+!/go.sum
+!/internal/

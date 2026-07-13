@@ -1,4 +1,4 @@
-package main
+package git
 
 import (
 	"fmt"
@@ -6,45 +6,30 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/trust/deploy/internal/domain/config"
+	"github.com/trust/deploy/internal/shared/paths"
 )
-
-func repoDirectory(cfg Config) (string, error) {
-	if cfg.Repository == "" {
-		return "", fmt.Errorf("сначала добавьте репозиторий")
-	}
-
-	repoName, err := repoNameFromURL(cfg.Repository)
-	if err != nil {
-		return "", err
-	}
-
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(cwd, repoName), nil
-}
 
 func isGitRepo(path string) bool {
 	_, err := os.Stat(filepath.Join(path, ".git"))
 	return err == nil
 }
 
-func gitEnv(repoPath string) []string {
-	env := os.Environ()
+func env(repoPath string) []string {
+	gitEnv := os.Environ()
 	privateKey := filepath.Join(repoPath, ".deploy", "id_ed25519")
 	if _, err := os.Stat(privateKey); err == nil {
 		sshCmd := fmt.Sprintf("ssh -i %q -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new", privateKey)
-		env = append(env, "GIT_SSH_COMMAND="+sshCmd)
+		gitEnv = append(gitEnv, "GIT_SSH_COMMAND="+sshCmd)
 	}
-	return env
+	return gitEnv
 }
 
-func runGit(dir string, env []string, args ...string) error {
+func run(dir string, gitEnv []string, args ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
-	cmd.Env = env
+	cmd.Env = gitEnv
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -109,8 +94,8 @@ func ensureGitignore(repoPath string) error {
 	return nil
 }
 
-func cloneRepository(cfg Config) error {
-	repoPath, err := repoDirectory(cfg)
+func Clone(cfg config.Config) error {
+	repoPath, err := paths.RepoDirectory(cfg)
 	if err != nil {
 		return err
 	}
@@ -123,18 +108,18 @@ func cloneRepository(cfg Config) error {
 		return fmt.Errorf("не удалось создать папку: %w", err)
 	}
 
-	env := gitEnv(repoPath)
+	gitEnv := env(repoPath)
 
-	if err := runGit(repoPath, env, "init"); err != nil {
+	if err := run(repoPath, gitEnv, "init"); err != nil {
 		return fmt.Errorf("git init: %w", err)
 	}
 
-	if err := runGit(repoPath, env, "remote", "add", "origin", cfg.Repository); err != nil {
+	if err := run(repoPath, gitEnv, "remote", "add", "origin", cfg.Repository); err != nil {
 		return fmt.Errorf("git remote add: %w", err)
 	}
 
 	fmt.Println("Клонирование...")
-	if err := runGit(repoPath, env, "fetch", "origin"); err != nil {
+	if err := run(repoPath, gitEnv, "fetch", "origin"); err != nil {
 		return fmt.Errorf("git fetch: %w", err)
 	}
 
@@ -143,7 +128,7 @@ func cloneRepository(cfg Config) error {
 		return err
 	}
 
-	if err := runGit(repoPath, env, "checkout", "-t", "origin/"+branch); err != nil {
+	if err := run(repoPath, gitEnv, "checkout", "-t", "origin/"+branch); err != nil {
 		return fmt.Errorf("git checkout: %w", err)
 	}
 

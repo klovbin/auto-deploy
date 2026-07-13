@@ -1,4 +1,4 @@
-package main
+package sshkeys
 
 import (
 	"crypto/ed25519"
@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func generateSSHKeyPair(privateKeyPath, publicKeyPath string) error {
+func GeneratePair(privateKeyPath, publicKeyPath string) error {
 	if _, err := os.Stat(privateKeyPath); err == nil {
 		return fmt.Errorf("ключ уже существует: %s", privateKeyPath)
 	}
