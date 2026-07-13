@@ -22,14 +22,16 @@ func main() {
 	generateGitLabCI := commands.GenerateGitLabCIHandler{}
 	generateCICDKey := commands.GenerateCICDKeyHandler{}
 	installDocker := commands.InstallDockerHandler{}
+	runService := commands.RunServiceHandler{}
 
 	menuItems := []cli.Item{
 		{Label: "1. Добавить репозиторий"},
 		{Label: "2. Сгенерировать деплой ключи"},
 		{Label: "3. Склонировать репозиторий"},
-		{Label: "4. Сгенерировать CI/CD", Disabled: commands.GitLabCIExists(cfg)},
+		{Label: "4. Сгенерировать CI/CD", Disabled: commands.GitLabCIExists(cfg), DisabledText: "уже есть"},
 		{Label: "5. Сгенерировать ключ для CI/CD"},
 		{Label: "6. Установить Docker"},
+		{Label: "7. Запустить сервис с билдом", Disabled: !commands.CanRunService(cfg)},
 	}
 
 	for {
@@ -92,6 +94,12 @@ func main() {
 			cli.WaitForEnter()
 		case 5:
 			if err := installDocker.Handle(); err != nil {
+				fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
+				os.Exit(1)
+			}
+			cli.WaitForEnter()
+		case 6:
+			if err := runService.Handle(cfg); err != nil {
 				fmt.Fprintf(os.Stderr, "ошибка: %v\n", err)
 				os.Exit(1)
 			}
