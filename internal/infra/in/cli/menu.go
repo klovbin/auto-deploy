@@ -55,6 +55,7 @@ func Select(items []Item) (int, error) {
 	prompt := promptui.Select{
 		Label: "Выберите пункт",
 		Items: labels,
+		Size:  len(labels),
 		Stdin: tty,
 	}
 
